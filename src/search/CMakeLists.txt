@@ -12,22 +12,20 @@ endif()
 
 
 ## == Project ==
-
-project(downward)
-
+project(symk-downward)
 # TODO: use multi-line strings to break up the long string when we switch to CMake 3.
 # https://stackoverflow.com/questions/7637539/how-to-split-strings-across-multiple-lines-in-cmake
 option(
   USE_GLIBCXX_DEBUG
   "Enable the libstdc++ debug mode that does additional safety checks. (On Linux systems, g++ and clang++ usually use libstdc++ for the C++ library.) The checks come at a significant performance cost and should only be enabled in debug mode. Enabling them makes the binary incompatible with libraries that are not compiled with this flag, which can lead to hard-to-debug errors."
   FALSE)
-
 fast_downward_set_compiler_flags()
 fast_downward_set_linker_flags()
 
 # Collect source files needed for the active plugins.
 include("${CMAKE_CURRENT_SOURCE_DIR}/DownwardFiles.cmake")
-add_executable(downward ${PLANNER_SOURCES})
+add_executable(symk-downward ${PLANNER_SOURCES})
+set_target_properties(symk-downward PROPERTIES OUTPUT_NAME downward)
 
 ## == Includes ==
 
@@ -37,13 +35,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ext)
 
 # On Linux, find the rt library for clock_gettime().
 if(UNIX AND NOT APPLE)
-    target_link_libraries(downward rt)
+    target_link_libraries(symk-downward rt)
 endif()
 
 # On Windows, find the psapi library for determining peak memory.
 if(WIN32)
     cmake_policy(SET CMP0074 NEW)
-    target_link_libraries(downward psapi)
+    target_link_libraries(symk-downward psapi)
 endif()
 
 # If any enabled plugin requires an LP solver, compile with all
@@ -71,24 +69,24 @@ if(PLUGIN_LP_SOLVER_ENABLED AND USE_LP)
                 mark_as_advanced(TMP_SOLVER_UPPER_CASE)
                 add_definitions("-D COIN_HAS_${TMP_SOLVER_UPPER_CASE}")
                 include_directories(${OSI_${SOLVER}_INCLUDE_DIRS})
-                target_link_libraries(downward ${OSI_${SOLVER}_LIBRARIES})
+                target_link_libraries(symk-downward ${OSI_${SOLVER}_LIBRARIES})
             endif()
         endforeach()
 
         # Note that basic OSI libs must be added after (!) all OSI solver libs.
         add_definitions("-D USE_LP")
         include_directories(${OSI_INCLUDE_DIRS})
-        target_link_libraries(downward ${OSI_LIBRARIES})
+        target_link_libraries(symk-downward ${OSI_LIBRARIES})
 
         find_package(ZLIB REQUIRED)
         if(ZLIB_FOUND)
             include_directories(${ZLIB_INCLUDE_DIRS})
-            target_link_libraries(downward ${ZLIB_LIBRARIES})
+            target_link_libraries(symk-downward ${ZLIB_LIBRARIES})
         endif()
     endif()
 
     if(OSI_Cpx_FOUND AND CPLEX_RUNTIME_LIBRARY)
-        add_custom_command(TARGET downward POST_BUILD
+        add_custom_command(TARGET symk-downward POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
             ${CPLEX_RUNTIME_LIBRARY}
             $<TARGET_FILE_DIR:downward>
@@ -119,7 +117,7 @@ include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/cudd-3.0.0/mtr
 if(${CMAKE_SIZEOF_VOID_P} EQUAL 4)
     message(STATUS "Building Cudd with 32-bit.")
     ExternalProject_add(
-        libcudd
+        symk-libcudd
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/cudd-3.0.0/
 	CONFIGURE_COMMAND autoreconf ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/cudd-3.0.0/ && ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/cudd-3.0.0/configure --enable-obj --enable-silent-rules "CFLAGS=-m32 -g -O3 -w" "CXXFLAGS=-m32 -std=c++0x -g ${CUDD_CXX_FLAGS}" "LDFLAGS=-m32"
         BUILD_COMMAND make
@@ -129,7 +127,7 @@ if(${CMAKE_SIZEOF_VOID_P} EQUAL 4)
 elseif(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
     message(STATUS "Building Cudd with 64-bit.")
     ExternalProject_add(
-        libcudd
+        symk-libcudd
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/cudd-3.0.0/
         CONFIGURE_COMMAND autoreconf ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/cudd-3.0.0/ && ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/cudd-3.0.0/configure --enable-obj --enable-silent-rules "CFLAGS=-m64 -g -O3 -w" "CXXFLAGS=-m64 -std=c++0x -g ${CUDD_CXX_FLAGS}" "LDFLAGS=-m64"
         BUILD_COMMAND make
@@ -140,8 +138,8 @@ else()
     message(FATAL_ERROR, "Could not determine bitwidth for Cudd.")
 endif()
 
-add_dependencies(libcudd MiniBoost)
-add_dependencies(translate libcudd)
-add_dependencies(preprocess libcudd)
-add_dependencies(downward libcudd)
-target_link_libraries(downward ${downward_BINARY_DIR}/libcudd-prefix/src/libcudd-build/cudd/.libs/libcudd.a)
+add_dependencies(symk-libcudd MiniBoost)
+add_dependencies(symk-translate symk-libcudd)
+add_dependencies(symk-preprocess symk-libcudd)
+add_dependencies(symk-downward symk-libcudd)
+target_link_libraries(symk-downward ${symk-downward_BINARY_DIR}/libcudd-prefix/src/libcudd-build/cudd/.libs/libcudd.a)

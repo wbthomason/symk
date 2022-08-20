@@ -8,7 +8,7 @@ if(NOT FAST_DOWNWARD_MAIN_CMAKELISTS_READ)
         "from the current directory and restart cmake.")
 endif()
 
-project(preprocess)
+project(symk-preprocess)
 fast_downward_set_compiler_flags()
 fast_downward_set_linker_flags()
 
@@ -28,4 +28,5 @@ set(PREPROCESS_SOURCES
     variable.cc
 )
 
-add_executable(preprocess ${PREPROCESS_SOURCES})
+add_executable(symk-preprocess ${PREPROCESS_SOURCES})
+set_target_properties(symk-preprocess PROPERTIES OUTPUT_NAME preprocess)

@@ -41,7 +41,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 include(FastDownwardMacros)
 
 fast_downward_default_to_release_build()
-project(fast-downward)
+project(symk-fast-downward)
 fast_downward_report_bitwidth()
 # Due to a bug in cmake, configuration types are only set up correctly on the second cmake run.
 # This means that cmake has to be called twice for multi-config generators like Visual Studio.
@@ -61,8 +61,8 @@ mark_as_advanced(DOWNWARD_CXX_COMPILER_ID DOWNWARD_CXX_COMPILER_VERSION)
 # Add planner components as subprojects.
 
 # Copy the translator into the output directory.
-add_custom_target(translate ALL)
-add_custom_command(TARGET translate POST_BUILD
+add_custom_target(symk-translate ALL)
+add_custom_command(TARGET symk-translate POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/translate
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/translate
