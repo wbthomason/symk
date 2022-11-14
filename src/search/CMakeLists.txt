@@ -123,6 +123,7 @@ if(${CMAKE_SIZEOF_VOID_P} EQUAL 4)
         BUILD_COMMAND make
         INSTALL_COMMAND ""
         BUILD_IN_SOURCE 0
+	BUILD_BYPRODUCTS ${symk-downward_BINARY_DIR}/symk-libcudd-prefix/src/symk-libcudd-build/cudd/.libs/libcudd.a
     )
 elseif(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
     message(STATUS "Building Cudd with 64-bit.")
@@ -133,6 +134,7 @@ elseif(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
         BUILD_COMMAND make
         INSTALL_COMMAND ""
         BUILD_IN_SOURCE 0
+	BUILD_BYPRODUCTS ${symk-downward_BINARY_DIR}/symk-libcudd-prefix/src/symk-libcudd-build/cudd/.libs/libcudd.a
     )
 else()
     message(FATAL_ERROR, "Could not determine bitwidth for Cudd.")
